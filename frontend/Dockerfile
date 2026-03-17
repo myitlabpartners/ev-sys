@@ -38,6 +38,10 @@ COPY --from=builder /app/.next/static ./.next/static
 # Copy public directory
 COPY --from=builder /app/public/ ./public/
 
+# Copy package.json and node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+
 # Create .env.local file for production
 RUN touch .env.local
 
@@ -49,4 +53,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "console.log('Health check running')" && curl -f http://localhost:3000 || exit 1
 
-CMD ["node", "server.js"]
+CMD ["npm", "run", "start"]
