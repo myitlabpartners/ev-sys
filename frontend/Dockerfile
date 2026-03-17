@@ -32,9 +32,11 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy the built application
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+
+# Copy public directory
+COPY --from=builder /app/public/ ./public/
 
 # Create .env.local file for production
 RUN touch .env.local
