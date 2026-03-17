@@ -1,7 +1,7 @@
 export default function AdminDashboard() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gradient-to-b from-green-50 to-emerald-100">
-      <div className="text-center max-w-4xl mx-auto">
+      <div className="text-center max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold mb-4 text-gray-800">EVCS Admin Dashboard</h1>
         <p className="text-lg text-gray-600 mb-8">
           Electric Vehicle Charging Station Management System
