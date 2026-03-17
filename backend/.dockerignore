@@ -1,13 +1,13 @@
 # Dependencies
-node_modules/
+node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # Build outputs
-dist/
-build/
-.next/
+dist
+build
+.next
 
 # Environment variables
 .env
@@ -17,8 +17,8 @@ build/
 .env.production.local
 
 # IDE
-.vscode/
-.idea/
+.vscode
+.idea
 *.swp
 *.swo
 
@@ -27,18 +27,27 @@ build/
 Thumbs.db
 
 # Logs
-logs/
+logs
 *.log
 
 # Runtime data
-pids/
+pids
 *.pid
 *.seed
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
-coverage/
+coverage
 
-# Temporary files
-tmp/
-temp/
+# Git
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentation
+README.md
+*.md
