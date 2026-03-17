@@ -1,0 +1,30 @@
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  
+  // Enable CORS for production
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || '*',
+    credentials: true,
+  });
+
+  // Global validation pipe
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
+
+  // Get port from environment or default to 3001
+  const port = process.env.PORT || 3001;
+  
+  await app.listen(port);
+  
+  console.log(`🚀 Backend is running on port ${port}`);
+  console.log(`📊 Health check: http://localhost:${port}/api/health`);
+  console.log(`🗄️  Database health: http://localhost:${port}/api/database/health`);
+}
+bootstrap();
