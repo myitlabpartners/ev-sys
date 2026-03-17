@@ -6,9 +6,9 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
+# Install ALL dependencies (including dev dependencies for build)
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -25,13 +25,15 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
+# Install only production dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
 
 # Copy the built application
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
 
 # Create .env file for production (will be overridden by Coolify)
 RUN touch .env
