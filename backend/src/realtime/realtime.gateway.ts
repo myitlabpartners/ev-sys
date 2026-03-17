@@ -1,4 +1,4 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { ChargerService } from '../chargers/charger.service';
@@ -59,29 +59,86 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   // Handle client requests
-  @WebSocketServer()
-  handleEvent(client: Socket, event: string, data: any) {
-    switch (event) {
-      case 'request.chargers':
-        this.sendChargersData(client);
-        break;
-      case 'request.sessions':
-        this.sendSessionsData(client);
-        break;
-      case 'request.statistics':
-        this.sendStatisticsData(client);
-        break;
-      case 'remote.start':
-        this.handleRemoteStart(client, data);
-        break;
-      case 'remote.stop':
-        this.handleRemoteStop(client, data);
-        break;
-      case 'remote.reset':
-        this.handleRemoteReset(client, data);
-        break;
-      default:
-        this.logger.warn(`Unknown event from client: ${event}`);
+  @SubscribeMessage('request.chargers')
+  async handleRequestChargers(client: Socket) {
+    this.sendChargersData(client);
+  }
+
+  @SubscribeMessage('request.sessions')
+  async handleRequestSessions(client: Socket) {
+    this.sendSessionsData(client);
+  }
+
+  @SubscribeMessage('request.statistics')
+  async handleRequestStatistics(client: Socket) {
+    this.sendStatisticsData(client);
+  }
+
+  @SubscribeMessage('remote.start')
+  async handleRemoteStart(client: Socket, data: { chargerId: string; connectorId: number; idTag: string }) {
+    try {
+      const success = await this.chargerService.remoteStartTransaction(data.chargerId, data.connectorId, data.idTag);
+      
+      client.emit('remote.start.response', {
+        success,
+        chargerId: data.chargerId,
+        connectorId: data.connectorId
+      });
+      
+      if (success) {
+        this.logger.log(`Remote start initiated for charger ${data.chargerId}, connector ${data.connectorId}`);
+      }
+    } catch (error) {
+      client.emit('remote.start.response', {
+        success: false,
+        chargerId: data.chargerId,
+        error: error.message
+      });
+    }
+  }
+
+  @SubscribeMessage('remote.stop')
+  async handleRemoteStop(client: Socket, data: { chargerId: string; transactionId: string }) {
+    try {
+      const success = await this.chargerService.remoteStopTransaction(data.chargerId, data.transactionId);
+      
+      client.emit('remote.stop.response', {
+        success,
+        chargerId: data.chargerId,
+        transactionId: data.transactionId
+      });
+      
+      if (success) {
+        this.logger.log(`Remote stop initiated for charger ${data.chargerId}, transaction ${data.transactionId}`);
+      }
+    } catch (error) {
+      client.emit('remote.stop.response', {
+        success: false,
+        chargerId: data.chargerId,
+        error: error.message
+      });
+    }
+  }
+
+  @SubscribeMessage('remote.reset')
+  async handleRemoteReset(client: Socket, data: { chargerId: string; type?: 'Hard' | 'Soft' }) {
+    try {
+      const success = await this.chargerService.resetCharger(data.chargerId, data.type);
+      
+      client.emit('remote.reset.response', {
+        success,
+        chargerId: data.chargerId
+      });
+      
+      if (success) {
+        this.logger.log(`Remote reset initiated for charger ${data.chargerId}, type: ${data.type || 'Soft'}`);
+      }
+    } catch (error) {
+      client.emit('remote.reset.response', {
+        success: false,
+        chargerId: data.chargerId,
+        error: error.message
+      });
     }
   }
 
@@ -115,71 +172,6 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
       client.emit(event, stats);
     } else {
       this.server.emit(event, stats);
-    }
-  }
-
-  private async handleRemoteStart(client: Socket, data: { chargerId: string; connectorId: number; idTag: string }) {
-    try {
-      const success = await this.chargerService.remoteStartTransaction(data.chargerId, data.connectorId, data.idTag);
-      
-      client.emit('remote.start.response', {
-        success,
-        chargerId: data.chargerId,
-        connectorId: data.connectorId
-      });
-      
-      if (success) {
-        this.logger.log(`Remote start initiated for charger ${data.chargerId}, connector ${data.connectorId}`);
-      }
-    } catch (error) {
-      client.emit('remote.start.response', {
-        success: false,
-        chargerId: data.chargerId,
-        error: error.message
-      });
-    }
-  }
-
-  private async handleRemoteStop(client: Socket, data: { chargerId: string; transactionId: string }) {
-    try {
-      const success = await this.chargerService.remoteStopTransaction(data.chargerId, data.transactionId);
-      
-      client.emit('remote.stop.response', {
-        success,
-        chargerId: data.chargerId,
-        transactionId: data.transactionId
-      });
-      
-      if (success) {
-        this.logger.log(`Remote stop initiated for charger ${data.chargerId}, transaction ${data.transactionId}`);
-      }
-    } catch (error) {
-      client.emit('remote.stop.response', {
-        success: false,
-        chargerId: data.chargerId,
-        error: error.message
-      });
-    }
-  }
-
-  private async handleRemoteReset(client: Socket, data: { chargerId: string; type?: 'Hard' | 'Soft' }) {
-    try {
-      const success = await this.chargerService.resetCharger(data.chargerId, data.type);
-      
-      client.emit('remote.reset.response', {
-        success,
-        chargerId: data.chargerId
-      });
-      
-      if (success) {
-        this.logger.log(`Remote reset initiated for charger ${data.chargerId}, type: ${data.type || 'Soft'}`);
-      }
-    } catch (error) {
-      client.emit('remote.reset.response', {
-        success: false,
-        chargerId: data.chargerId,
-        error: error.message
-      });
     }
   }
 
