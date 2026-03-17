@@ -62,8 +62,7 @@ export default function ChargerManagement() {
 
   useEffect(() => {
     // Connect to WebSocket
-    const newSocket = io(getApiUrl(''), {
-      namespace: '/realtime',
+    const newSocket = io(getApiUrl('/realtime'), {
       transports: ['websocket'],
       upgrade: false
     })

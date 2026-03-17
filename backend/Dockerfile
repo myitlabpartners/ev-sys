@@ -30,7 +30,7 @@ ENV NODE_ENV production
 
 # Install only production dependencies
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci --only=production --legacy-peer-deps
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
