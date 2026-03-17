@@ -1,5 +1,4 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,13 +10,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }));
-
   // Get port from environment or default to 3001
   const port = process.env.PORT || 3001;
   
@@ -27,4 +19,5 @@ async function bootstrap() {
   console.log(`📊 Health check: http://localhost:${port}/api/health`);
   console.log(`🗄️  Database health: http://localhost:${port}/api/database/health`);
 }
+
 bootstrap();
