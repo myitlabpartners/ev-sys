@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { getApiUrl } from '@/src/config/api'
 
 export default function ApiCheck() {
   const [apiStatus, setApiStatus] = useState<string>('Checking...')
@@ -13,7 +14,7 @@ export default function ApiCheck() {
 
   useEffect(() => {
     // Check backend health
-    fetch('http://localhost:3001/api/health')
+    fetch(getApiUrl('/api/health'))
       .then(response => response.json())
       .then(data => {
         setApiStatus('Connected')
@@ -27,7 +28,7 @@ export default function ApiCheck() {
 
   const checkDatabaseConnection = () => {
     setDbStatus('Checking...')
-    fetch('http://localhost:3001/api/database/health')
+    fetch(getApiUrl('/api/database/health'))
       .then(response => response.json())
       .then(data => {
         if (data.status === 'connected') {

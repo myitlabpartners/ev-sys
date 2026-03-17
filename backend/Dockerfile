@@ -1,6 +1,9 @@
 # Use Node.js 20 Alpine as base image (required by Supabase)
 FROM node:20-alpine AS base
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Install dependencies only when needed
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
